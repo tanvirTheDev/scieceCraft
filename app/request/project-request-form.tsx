@@ -1,21 +1,39 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { CalendarIcon, Loader2 } from "lucide-react"
-import { format } from "date-fns"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { CalendarIcon, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { toast } from "@/components/ui/use-toast"
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -40,11 +58,11 @@ const formSchema = z.object({
     required_error: "Please select a deadline.",
   }),
   budget: z.string().optional(),
-})
+});
 
 export function ProjectRequestForm() {
-  const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,26 +74,35 @@ export function ProjectRequestForm() {
       description: "",
       budget: "",
     },
-  })
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      const response = await fetch("/api/project-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
 
-    setIsSubmitting(false)
+      if (!response.ok) throw new Error("Failed to submit");
 
-    toast({
-      title: "Project Request Submitted",
-      description: "We'll review your request and get back to you within 24 hours.",
-    })
+      toast({
+        title: "Project Request Submitted",
+        description:
+          "We'll review your request and get back to you within 24 hours.",
+      });
 
-    // In a real app, you would submit to your API here
-    console.log(values)
-
-    // Redirect to thank you page
-    router.push("/request/thank-you")
+      router.push("/request/thank-you");
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Submission failed. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -102,7 +129,11 @@ export function ProjectRequestForm() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type="email" placeholder="john@example.com" {...field} />
+                  <Input
+                    type="email"
+                    placeholder="john@example.com"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -180,7 +211,8 @@ export function ProjectRequestForm() {
                 />
               </FormControl>
               <FormDescription>
-                Include any specific requirements, dimensions, materials, or functionality you need.
+                Include any specific requirements, dimensions, materials, or
+                functionality you need.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -197,8 +229,15 @@ export function ProjectRequestForm() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <FormControl>
-                      <Button variant={"outline"} className="w-full pl-3 text-left font-normal">
-                        {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                      <Button
+                        variant={"outline"}
+                        className="w-full pl-3 text-left font-normal"
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
@@ -213,7 +252,9 @@ export function ProjectRequestForm() {
                     />
                   </PopoverContent>
                 </Popover>
-                <FormDescription>When do you need this project completed?</FormDescription>
+                <FormDescription>
+                  When do you need this project completed?
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -227,7 +268,9 @@ export function ProjectRequestForm() {
                 <FormControl>
                   <Input placeholder="Your budget in BDT" {...field} />
                 </FormControl>
-                <FormDescription>Providing a budget helps us tailor our quote to your needs.</FormDescription>
+                <FormDescription>
+                  Providing a budget helps us tailor our quote to your needs.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -246,6 +289,5 @@ export function ProjectRequestForm() {
         </Button>
       </form>
     </Form>
-  )
+  );
 }
-
